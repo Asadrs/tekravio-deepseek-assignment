@@ -1,6 +1,16 @@
 # DeepSeek V4 Pro — AI Research Intern Assignment
 **Tekravio Academy · Assignment 04 · Submitted by: [R.S.Asaduddin]**
 
+## Table of Contents
+
+- Introduction
+- Module 1: DeepSeek V4 Pro Architecture
+- Module 2: Licensing Analysis
+- Module 3: Benchmark Analysis
+- Module 4: Cost & Deployment
+- Module 5: Enterprise Adoption
+- References
+
 ---
 
 ## Module 01 — MLA Architecture & the 88% Inference Cost Reduction (22 marks)
