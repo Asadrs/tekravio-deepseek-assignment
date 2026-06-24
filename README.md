@@ -691,3 +691,154 @@ DeepSeek V4 Pro suggests that point may already have arrived.
 13. OpenRouter Model Pricing Data
 14. DataCamp Frontier Model Comparisons
 15. BenchLM Frontier Model Evaluations
+
+---
+
+# Bonus Tasks (+30 Marks)
+
+---
+
+## Bonus Task 1 — Self-Hosting Feasibility Study (+15)
+
+### Research Question
+
+What does it actually cost to run DeepSeek V4 Pro on rented GPU infrastructure, and when does self-hosting become economically viable compared to the official API?
+
+---
+
+### Minimum Hardware Requirements
+
+DeepSeek V4 Pro is an extremely large Mixture-of-Experts model. Although only approximately 42–49B parameters become active during inference, all experts must remain available in GPU memory.
+
+| Configuration | Approximate VRAM | Hardware Requirement |
+|---|---|---|
+| FP4 + FP8 | ~1.1 TB | 8× NVIDIA H200 |
+| FP8 | ~2.4 TB | 16× NVIDIA H100 |
+| Quantized deployment | ~800–1000 GB | Multi-node GPU cluster |
+
+---
+
+### Estimated Infrastructure Costs
+
+| Provider | Configuration | Monthly Cost |
+|---|---|---|
+| Lambda Labs | 8× H200 | $17,000–18,000 |
+| CoreWeave | 8× H200 | $18,000–20,000 |
+| RunPod | H100 cluster | $20,000+ |
+| Together AI | Managed deployment | Usage-based |
+
+---
+
+### API Pricing Comparison
+
+DeepSeek API pricing:
+
+- Input tokens: $0.435 per million
+- Output tokens: $0.87 per million
+
+Assuming a blended token cost of approximately:
+
+> $2.26 per million tokens
+
+Break-even point:
+
+```
+$17,500 ÷ $2.26 ≈ 7.7 billion tokens/month
+```
+
+This indicates that self-hosting becomes economically viable only for:
+
+- Large enterprises
+- Government organizations
+- Highly regulated industries
+- Organizations requiring complete data sovereignty
+
+Most startups and medium-sized companies would benefit more from the hosted API.
+
+---
+
+### Latency Considerations
+
+API deployments offer:
+
+- Zero infrastructure management
+- Lower operational overhead
+- Faster deployment
+
+Self-hosted deployments offer:
+
+- Full data control
+- Internal security
+- Regulatory compliance
+- Fine-tuning capability
+
+Therefore, the self-hosting decision is driven primarily by compliance and security requirements rather than pure cost savings.
+
+---
+
+## Bonus Task 2 — MLA Architecture Deep Dive (+10)
+
+Multi-head Latent Attention (MLA) addresses one of the largest problems in modern transformers: KV cache growth.
+
+Traditional attention mechanisms store full Key and Value vectors for every token. As context length increases, memory consumption grows linearly.
+
+MLA compresses these representations into smaller latent vectors and reconstructs them during attention computation.
+
+### Approximate KV Cache Savings
+
+| Context Length | Standard Attention | MLA | Memory Reduction |
+|---|---|---|
+| 1K tokens | 100% | ~50% | ~50% |
+| 10K tokens | 100% | ~20% | ~80% |
+| 100K tokens | 100% | ~10% | ~90% |
+
+As context windows increase, KV cache becomes the dominant memory bottleneck.
+
+MLA reduces this bottleneck through:
+
+1. Low-rank compression.
+2. Latent vector storage.
+3. Reconstruction during inference.
+
+This enables efficient long-context reasoning while reducing GPU memory requirements.
+
+For million-token contexts, these savings become essential for practical deployment.
+
+---
+
+## Bonus Task 3 — Competition Problem Analysis (+5)
+
+The reported IMO, IOI, and ICPC achievements demonstrate different categories of reasoning.
+
+| Competition | Reasoning Type |
+|---|---|
+| IMO | Mathematical reasoning |
+| IOI | Algorithmic reasoning |
+| ICPC | Multi-step problem solving |
+
+These competitions require:
+
+- Novel problem solving
+- Logical abstraction
+- Planning
+- Verification
+- Algorithm design
+
+Unlike traditional benchmarks, these problems are specifically designed to prevent memorization.
+
+### Production Applications
+
+Applications benefiting from this level of reasoning include:
+
+- Financial modelling systems
+- Scientific research assistants
+- Drug discovery platforms
+- Supply chain optimization
+- Engineering simulation tools
+- Mathematical proof assistants
+
+These domains require genuine reasoning ability rather than simple information retrieval.
+
+The competition results suggest that frontier AI systems are increasingly capable of solving previously unseen problems, which remains one of the most important requirements for real-world enterprise AI systems.
+
+---
