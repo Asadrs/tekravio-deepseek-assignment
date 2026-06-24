@@ -1,6 +1,7 @@
 # DeepSeek V4 Pro — AI Research Intern Assignment
 **Tekravio Academy · Assignment 04 · Submitted by: [R.S.Asaduddin]**
 
+---
 ## Table of Contents
 
 - Introduction
@@ -10,8 +11,6 @@
 - Module 4: Cost & Deployment
 - Module 5: Enterprise Adoption
 - References
-
----
 
 ## Module 01 — MLA Architecture & the 88% Inference Cost Reduction (22 marks)
 
@@ -138,3 +137,248 @@ This is stronger evidence of mathematical and algorithmic reasoning capability t
 ---
 
 *Sources: DeepSeek V4 technical documentation, vLLM blog (April 2026), DataCamp DeepSeek V4 vs GPT-5.5 analysis, LLMReference comparison data, Towards Data Science MLA deep dive, Tech Jacks Solutions V4 architecture breakdown.*
+
+---
+
+## Module 02 — The MIT License & What Open Weights Actually Enable (20 marks)
+
+---
+
+### 1. MIT vs Other Open Licenses
+
+Not all "open" AI models are equally open. Here's how the major licenses compare:
+
+| License | Used by | Commercial use | Fine-tune & redistribute | Train other models | Patent grant |
+|---|---|---|---|---|---|
+| **MIT** | DeepSeek V4 Pro, R1 | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No explicit grant |
+| **Apache 2.0** | Llama 4 Scout, Qwen 3.x, Gemma 4 | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Explicit patent grant |
+| **DeepSeek prior license** | V3 base, Coder-V2, VL2 | ⚠️ Restricted | ⚠️ Restricted | ❌ No | ❌ No |
+| **Grok license** | xAI Grok models | ✅ Yes | ⚠️ Restricted | ❌ Prohibits using weights to train other models | ❌ No |
+| **Meta Llama 3 license** | Llama 3 family | ⚠️ Restricted for large-scale commercial use | ⚠️ Some restrictions | ⚠️ Restrictions apply | ❌ No |
+
+**Key distinctions:**
+
+- **What MIT allows that Apache 2.0 also allows:** Both permit commercial deployment, product integration, fine-tuning, and redistribution without royalties. An enterprise can build and sell a SaaS product powered by DeepSeek V4 Pro under either license with no licensing fees.
+- **What MIT allows that Grok's license prohibits:** Grok's license explicitly prohibits using the model weights to train other models. Under MIT, you can use DeepSeek V4 Pro outputs or weights to distill smaller models, apply RLHF, or create derivative models — and release them under any license, including proprietary ones. This is explicitly permitted by DeepSeek.
+- **One practical difference between MIT and Apache 2.0:** Apache 2.0 includes an explicit patent grant, meaning contributors grant users a royalty-free patent license. MIT does not. For most teams this is a minor distinction; for patent-sensitive industries (pharmaceuticals, hardware), Apache 2.0 can be preferable.
+- **Older DeepSeek models** used a split license — permissive code license but more restrictive weights license. V4 Pro applies the MIT license to both code and weights, eliminating this ambiguity.
+
+The only requirement MIT imposes is including the original copyright notice in any distribution. That's it.
+
+---
+
+### 2. Self-Hosting Economics — Full Break-Even Calculation
+
+**Hardware requirements for V4 Pro:**
+
+DeepSeek V4 Pro weights are approximately **865GB** on disk in FP4+FP8 mixed precision. This has significant hardware implications:
+
+| Precision | VRAM needed | Minimum hardware |
+|---|---|---|
+| FP4+FP8 (native) | ~865GB | 8× B300 (Blackwell, single node) |
+| FP8 only (Hopper) | ~865GB | 2-node H200 cluster (16× H200) |
+| FP8 on H100 | ~865GB | Does not fit on 8× H100 (640GB total) |
+
+For practical self-hosting, **V4 Pro requires a minimum of two H200 nodes** to run at full 1M token context. A single 8× H100 node (the most commonly available GPU cluster) is not sufficient.
+
+**Monthly rental cost (approximate, as of mid-2026):**
+
+| Provider | Configuration | Monthly cost |
+|---|---|---|
+| Lambda Labs / CoreWeave | 8× H200 (1-year reserved) | ~$17,500/month |
+| AWS p5.48xlarge (H100 ×8, on-demand) | 8× H100 | ~$39,600/month |
+| AWS p5.48xlarge (1-year reserved) | 8× H100 | ~$23,800/month |
+| RunPod (spot, H100 ×8) | 8× H100 | ~$8,000–12,000/month |
+
+Note: V4 Pro at 865GB does not fit on 8× H100 (640GB), so the H100 rows above require either two nodes or running V4 Flash instead.
+
+**Break-even calculation (V4 Pro, API vs self-host):**
+
+DeepSeek V4 Pro standard API pricing: $1.74/M input tokens, $3.48/M output tokens.
+
+Assuming a typical 70/30 input/output split:
+- Blended API rate ≈ (0.7 × $1.74) + (0.3 × $3.48) = $1.218 + $1.044 = **$2.26/M blended tokens**
+
+For self-hosting on 8× H200 at $17,500/month (reserved, Lambda Labs):
+- To break even: $17,500 ÷ $2.26 per million = **~7.7 billion tokens/month needed**
+- At 65% GPU utilisation with ~5K tokens/second aggregate throughput: max capacity ≈ ~9.7B tokens/month
+- Break-even volume: approximately **250M tokens/day of sustained, consistent load**
+
+**Conclusion:** Self-hosting V4 Pro wins on cost only if you are processing more than ~250 million tokens per day at steady-state utilisation. Below that, DeepSeek's API is cheaper. Most startups never reach this volume. The primary reasons to self-host are **data sovereignty and compliance**, not cost.
+
+---
+
+### 3. Fine-Tuning Feasibility
+
+**Full-parameter fine-tuning:**
+
+Full-parameter fine-tuning of a 680B–1.6T parameter MoE model requires storing gradients, optimiser states, and activations alongside the weights. For a model this size, this requires an impractical number of GPUs — likely hundreds of H100s — and is not feasible for any team below hyperscaler scale. This is not a realistic option for most organisations.
+
+**LoRA / QLoRA (practical option):**
+
+QLoRA (Quantized Low-Rank Adaptation) is the practical fine-tuning approach. It works by:
+- Quantizing the base model to 4-bit (dramatically reducing memory)
+- Training only small low-rank adapter matrices (~0.1–1% of total parameters)
+- Keeping the base model frozen
+
+For V4 Pro via QLoRA: estimated 24–48 hours of fine-tuning on 8× H100 for a domain adaptation task. Together AI announced hosted fine-tuning for V4 Pro in April 2026 at $50/run base cost plus token cost.
+
+**What a 10-person engineering team can realistically do:**
+- **QLoRA domain adaptation:** Feasible via Together AI's hosted fine-tuning or a rented GPU cluster for a targeted task (legal documents, medical terminology, proprietary code style)
+- **Full fine-tune:** Not feasible without enterprise GPU infrastructure at scale
+- **Inference serving:** V4 Flash (284B, ~158GB) is the practical self-hosting target for small teams; V4 Pro requires dedicated GPU cluster operations
+
+---
+
+### 4. Geopolitical Procurement Considerations
+
+**EU enterprise customers:**
+
+DeepSeek is a Chinese company (Hangzhou DeepSeek Artificial Intelligence Basic Technology Research Co., Ltd.). This creates real regulatory risk for EU enterprises.
+
+Using the **DeepSeek API** means user data is transmitted to and stored on servers in China. Italy's Garante blocked DeepSeek's service in January 2025 after finding it failed to meet GDPR obligations — specifically that personal data was stored in China with no adequacy decision in place under GDPR Chapter V, and no valid legal basis for processing EU residents' data.
+
+**Does self-hosting the MIT weights change this?**
+
+Partially, yes. If an EU company self-hosts the weights on EU-based servers:
+- No data is sent to DeepSeek's infrastructure
+- The GDPR data transfer concern (data going to China) is eliminated
+- The company becomes the data controller and must comply with GDPR in their own right
+
+However, GDPR obligations still apply:
+- The company must have a valid lawful basis for any personal data processed through the model
+- They must provide transparency to data subjects
+- They remain liable for the model's outputs affecting EU residents
+- The EU AI Act (taking full effect August 2026) still applies — they must classify their AI system by risk tier and meet the corresponding requirements
+
+**US government contractors:**
+
+The US government has not enacted a blanket federal ban on DeepSeek as of June 2026, but:
+- FedRAMP authorization is required for cloud services used by federal agencies — DeepSeek's API has no FedRAMP authorization
+- Multiple US government agencies and the US Congress have banned DeepSeek on government devices
+- US government contractors working on sensitive or classified programmes should treat DeepSeek API usage as prohibited
+- Self-hosting on US-based, cleared infrastructure reduces (but does not eliminate) procurement risk, as the model's Chinese origin remains a concern for national security use cases
+
+---
+
+### 5. Impact on the AI Industry
+
+The MIT license on a frontier-adjacent model is a significant competitive event. Its effects:
+
+**Pricing pressure on closed providers:** When DeepSeek V3 launched in late 2024 and V4 in April 2026, it demonstrably compressed the pricing of closed-weight providers. The intelligence-per-dollar ratio that V4 Pro offers ($1.74/M input vs GPT-5.5 at $5/M or Claude Fable 5 at $10/M) forces closed labs to either lower prices or justify their premium through capabilities DeepSeek cannot match (multimodal input, computer use, guaranteed safety documentation, enterprise SLAs).
+
+**Open-weight model competition accelerating:** The open-weight frontier has compressed rapidly. The 2026 Stanford AI Index documents that the top closed model leads the top open model by only 3.3% on the Arena Leaderboard — a gap that was far larger two years earlier. DeepSeek's releases have forced other labs (Alibaba's Qwen, Google's Gemma, Meta's Llama) to also release more capable open-weight models.
+
+**Ecosystem development:** MIT licensing creates maximum incentive for the developer ecosystem to build on V4 Pro. Fine-tune providers (Together AI), inference hosts (Fireworks, OpenRouter), and integration layers (Claude Code, OpenCode, CodeBuddy) all adopted V4 on launch day — something that would not happen as quickly under a restrictive license.
+
+**Vendor lock-in reduction:** For any company that has built products on closed API-only providers, the availability of frontier-adjacent open weights creates a credible alternative and migration path. This shifts negotiating leverage in the market.
+
+---
+
+*Sources: DeepSeek V4 Hugging Face model card (MIT License), Verdent AI self-hosting guide, andrew.ooo cost analysis (April 2026), IAPP DeepSeek regulatory analysis, EU AI Act regulatory guidance, Italy Garante DeepSeek ban documentation, Lushbinary self-hosting guide.*
+
+---
+
+## Module 02 — The MIT License & What Open Weights Actually Enable (20 marks)
+
+---
+
+### 1. MIT vs Other Open Licenses
+
+Not all "open" AI models are equally open. Here is how the major licenses compare:
+
+| License | Used by | Commercial use? | Fine-tune allowed? | Train other models? | Restrictions |
+|---|---|---|---|---|---|
+| **MIT** | DeepSeek V4 Pro, GLM-5.2 | ✅ Yes | ✅ Yes | ✅ Yes | Include copyright notice only |
+| **Apache 2.0** | Llama 4 Scout, Qwen 3.x, Mistral | ✅ Yes | ✅ Yes | ✅ Yes | Include copyright + patent notice |
+| **DeepSeek prior license** | DeepSeek V2, V3 (earlier) | ✅ Yes | ✅ Yes | ✅ Yes | Slightly more restrictive ToS clauses |
+| **Grok 2.5 license** | xAI Grok 2.5 | ✅ Yes | ✅ Yes | ❌ No | Prohibits using weights to train other models |
+| **Meta Llama 3 license** | Llama 3 family | ✅ Yes (under 700M MAU) | ✅ Yes | Restricted | >700M MAU requires Meta permission; EU user restrictions |
+
+**Key differences:**
+
+MIT and Apache 2.0 both permit commercial use, modification, and redistribution — and for most practical enterprise purposes they are equivalent. The difference is that Apache 2.0 includes an explicit **patent grant** (protecting users from patent claims by contributors), while MIT does not. For most AI use cases, this distinction is unlikely to matter.
+
+What MIT allows that **Grok 2.5's license prohibits**: you can take DeepSeek V4 Pro's weights and use them to train, fine-tune, or distill entirely new models — including commercial ones — and release those models under any license you choose, including proprietary ones. Grok 2.5 explicitly forbids this, making it unsuitable for teams that want to build derivative models.
+
+---
+
+### 2. Self-Hosting Economics (Full Calculation)
+
+**Hardware requirements:**
+
+| Model | Precision | Weight size | Minimum VRAM | GPU configuration |
+|---|---|---|---|---|
+| V4-Flash | FP4+FP8 (native) | ~158 GB | ~175 GB (with KV cache) | 2× H200 or 4× A100 80GB |
+| V4-Flash | FP8 (H100-compatible) | ~284 GB | ~320 GB | 4× H100 80GB |
+| V4-Pro | FP4+FP8 (native) | ~862 GB | ~1.1 TB | 8× H200 (single node) |
+| V4-Pro | FP8 (H100) | ~2.4 TB | ~2.4 TB | 16× H100 80GB (multi-node) |
+
+**Note:** MoE memory is total, not active. All 862 GB of V4-Pro weights must fit in VRAM because the router selects different experts per token — you cannot lazy-load experts without severe latency spikes.
+
+**Monthly rental cost (V4-Pro on H100, June 2026 estimates):**
+
+- 8× H200 on Lambda Labs / CoreWeave (reserved, 1-year): ~$17,500/month
+- 16× H100 cluster (on-demand): ~$25,000–$35,000/month
+- Energy overhead (8× H100 at 80% utilization, $0.12/kWh): ~$390/month additional
+
+**Break-even calculation vs DeepSeek API ($1.74/$3.48 standard):**
+
+Assume 70/30 input/output token ratio:
+- Blended API cost ≈ $0.174 × 0.7 + $0.348 × 0.3 = **~$2.26 per million blended tokens**
+- Self-host cost on 8× H200 at 60% utilization: ~$2.50/M output tokens; at 90% utilization: ~$1.20/M
+
+At current DeepSeek API pricing, the break-even for V4-Pro self-hosting on cost alone requires approximately **200 billion tokens per month at sustained high utilization** with reserved instances. Most teams will not reach this volume. The conclusion is clear: **self-host V4-Pro for sovereignty, compliance, or fine-tuning reasons — not for raw cost savings at moderate volumes.**
+
+---
+
+### 3. Fine-Tuning Feasibility
+
+With MIT weights, developers can fine-tune V4 Pro on their own data. Here is what that actually requires:
+
+**Full-parameter fine-tuning (not practical for most teams):**
+Full-parameter fine-tuning of a 680B+ MoE model requires compute equivalent to or exceeding the original training run — billions of GPU-hours. This is not feasible for any team outside well-funded AI labs.
+
+**LoRA / QLoRA (practical for a 10-person engineering team):**
+QLoRA (Quantized Low-Rank Adaptation) reduces fine-tuning memory requirements dramatically by training only small adapter layers on top of a quantized frozen base. For V4-Pro, QLoRA fine-tuning on domain-specific data is achievable in approximately 24–48 hours on an 8× H100 setup. Together AI has also announced hosted fine-tuning for V4-Pro at approximately $50 per run base cost plus token costs.
+
+**Realistic customisation options for a small team:**
+- QLoRA fine-tuning on proprietary datasets (domain adaptation)
+- Prompt engineering and system-prompt customisation (no compute required)
+- Distillation: using V4-Pro to generate training data for a smaller, faster model
+- Running V4-Flash (284B, ~158 GB) as a more manageable self-hosted base for fine-tuning experiments
+
+---
+
+### 4. Geopolitical Procurement Considerations
+
+**EU enterprise customers:**
+DeepSeek's terms of service disclose that user data is stored on servers in China. Italy's Garante data protection authority has already banned the DeepSeek app and launched enforcement investigations. Germany's Berlin data protection commissioner declared DeepSeek's practices unlawful under GDPR. Multiple EU regulators — including France, Belgium, and Ireland — have opened formal investigations.
+
+The core GDPR concern: China has no EU adequacy decision, meaning personal data transferred to China does not have equivalent legal protection. Under GDPR Articles 44–49, sending EU personal data to China requires either Standard Contractual Clauses (SCCs) or other appropriate safeguards — which DeepSeek has not been shown to provide.
+
+The EU AI Act (GPAI model obligations now applying from August 2025) may also classify V4 Pro as a GPAI model with systemic risk, triggering additional transparency and compliance requirements regardless of its open-source license.
+
+**Does self-hosting change the risk calculation?**
+Yes — significantly. If an EU enterprise self-hosts V4 Pro's MIT weights on infrastructure within the EU (their own data centre or an EU-based cloud region), **no personal data is transmitted to DeepSeek or to China**. The GDPR data transfer problem disappears because the model runs entirely on EU infrastructure. The enterprise still carries obligations as the data controller, but the Chinese data residency risk is eliminated.
+
+**US government contractors:**
+The US has classified DeepSeek as a national security concern. Multiple US states (including Texas) have banned DeepSeek on government devices. The Department of Justice has restrictions on data transfers to "countries of concern," which includes China. FedRAMP certification (required for US federal cloud services) is not available for DeepSeek's API, which routes through Chinese infrastructure. US government contractors must use FedRAMP-authorized alternatives (Together AI or Fireworks AI host V4 Pro on US infrastructure) or self-host the weights in a US-authorized environment.
+
+---
+
+### 5. Impact on the AI Industry
+
+DeepSeek's MIT licensing of a frontier-adjacent model is one of the most significant events in AI industry history. It has produced two major effects:
+
+**Pricing pressure on closed providers:**
+When a model of comparable capability is available at $1.74/M input tokens with freely downloadable weights, closed-weight providers charging $10–$30/M for equivalent capability lose a primary argument for their pricing. OpenAI, Anthropic, and Google have all reduced API prices for comparable models since DeepSeek's open-weight releases began. The gap between closed and open model performance has compressed from years to months.
+
+**Response from other AI labs:**
+Other labs have accelerated their own open-weight releases. Meta has open-sourced Llama 4 under Apache 2.0. Alibaba's Qwen 3 series is also Apache 2.0 licensed. GLM-5.2 (June 2026, MIT licensed) is now competing at the top of open-weight intelligence rankings. The industry has moved from a model where open-weight was a niche offering to one where open-weight frontier-adjacent models are available from multiple labs simultaneously.
+
+The competitive dynamic has fundamentally shifted: **the question is no longer whether open weights can match closed models, but by how much closed models still lead and for how long.**
+
+---
+
+*Sources: DeepSeek V4 Hugging Face model card (MIT License), Lushbinary self-hosting guide (April 2026), AI Mastery vLLM deployment analysis, Pinsent Masons EU AI Act analysis, EU Institute for Security Studies DeepSeek report, GDPREU.org GDPR compliance analysis, ComputingForGeeks open-source LLM comparison (June 2026), MindStudio DeepSeek V4 enterprise review.*
