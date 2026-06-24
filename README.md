@@ -216,7 +216,109 @@ The competitive dynamic has fundamentally shifted: **the question is no longer w
 
 ## Module 03 — Benchmark Analysis (20 marks)
 
-*Coming soon*
+---
+
+### 1. What Each Benchmark Actually Tests
+
+Before comparing scores, it's important to understand what each benchmark measures — and what it doesn't.
+
+| Benchmark | What it tests | Why it matters | Limitation |
+|---|---|---|---|
+| **SWE-bench Verified** | Resolving real GitHub issues — navigate a real codebase, write a patch that passes real tests | Closest proxy to actual software engineering work | Vendor-reported scores vary; needs independent reproduction |
+| **SWE-bench Pro** | Same as Verified but uses issues filed *after* training cutoff | Reduces data contamination risk | Harder to game; scores are lower across all models |
+| **LiveCodeBench** | Code generation on freshly-released competitive programming problems | Mitigates training-set contamination | Favours algorithmic thinking over real-world engineering |
+| **GPQA Diamond** | Graduate-level science questions (PhD-level physics, chemistry, biology) | Tests deep domain reasoning | Now saturating at the frontier; small gaps are noise |
+| **MMLU-Pro** | 57-subject multiple choice knowledge test | Good for comparing general capability floor | Saturating — 87–90%+ scores are hard to differentiate |
+| **HLE (Humanity's Last Exam)** | Extremely hard, expert-authored questions across all domains | Designed specifically to not be saturated | Only useful as a relative comparison, not absolute |
+| **Terminal-Bench 2.0** | Autonomous CLI tasks — file systems, build tools, shell commands | Best proxy for agentic system tasks | GPT-5.5 optimised specifically for this |
+| **Codeforces Rating** | Competitive programming rating based on real contest performance | Live, contamination-resistant | Algorithmic, not real-world engineering |
+
+---
+
+### 2. Full Benchmark Comparison Table
+
+All scores are vendor-reported unless noted. Treat as directional — independent reproduction is still landing for some V4 Pro numbers.
+
+| Benchmark | DeepSeek V4 Pro | Claude Opus 4.7 | GPT-5.5 | Winner |
+|---|---|---|---|---|
+| **SWE-bench Verified** | 80.6% | 87.6% | 74.9% | Claude Opus 4.7 |
+| **SWE-bench Pro** | 55.4% | 64.3% | 58.6% | Claude Opus 4.7 |
+| **LiveCodeBench** | 93.5% | 88.8% | ~85% | **DeepSeek V4 Pro** |
+| **Codeforces Rating** | 3,206 | ~2,800 | 3,168 | **DeepSeek V4 Pro** |
+| **GPQA Diamond** | 90.1% | 94.2% | 93.6% | Claude Opus 4.7 |
+| **MMLU-Pro** | 87.5% | 89.1% | 88.1% | Claude Opus 4.7 |
+| **HLE (no tools)** | 37.7% | ~40% | 41.4% | GPT-5.5 |
+| **Terminal-Bench 2.0** | 67.9% | 65.4% | 82.7% | GPT-5.5 |
+| **MATH-500** | 96.1% | ~95% | ~95% | **DeepSeek V4 Pro** |
+| **Context window** | 1M tokens | 200K tokens | 1.05M tokens | Tie (V4 Pro / GPT-5.5) |
+| **Output price** | $0.87/M | $25/M | $30/M | **DeepSeek V4 Pro** |
+
+**Key takeaway from the table:**
+- V4 Pro **wins** on: LiveCodeBench, Codeforces, MATH-500, and cost by a wide margin
+- Claude Opus 4.7 **wins** on: SWE-bench (both), GPQA Diamond, MMLU-Pro — i.e. real-world software engineering and knowledge recall
+- GPT-5.5 **wins** on: Terminal-Bench (autonomous CLI tasks), HLE, long-context retrieval
+
+---
+
+### 3. Verifying DeepSeek's Capability Claims
+
+DeepSeek's own release notes describe V4 Pro as:
+> *"Leading all current open models in math, STEM, and coding, while trailing current proprietary models."*
+
+This is an honest and accurate self-assessment. Let's verify each claim:
+
+**"Leading all open models in coding"** — Verified. SWE-bench Verified at 80.6% is the highest confirmed score among open-weight models. V4-Pro-Max leads the open-weight SWE-bench Verified leaderboard, tied with Gemini 3.1 Pro. LiveCodeBench at 93.5% is also the highest open-weight result.
+
+**"Trailing proprietary models"** — Verified. Claude Opus 4.7 leads SWE-bench Verified (87.6%) and SWE-bench Pro (64.3%) by meaningful margins. GPT-5.5 leads Terminal-Bench 2.0 (82.7%) and HLE (41.4%). The gaps are real but not generational.
+
+**The 3–6 month gap claim:** DeepSeek's own technical report states V4 Pro trails the absolute frontier by roughly 3–6 months. Based on benchmark evidence this is plausible — V4 Pro sits between GPT-5.4 and GPT-5.5 on most evals, suggesting it corresponds to approximately where the proprietary frontier was in late 2025.
+
+**Important caveat:** Several V4 Pro scores are still vendor-reported as of June 2026 and await independent reproduction. The SWE-bench Verified score in particular (80.6%) has not yet been confirmed by Scale AI's standardized SEAL leaderboard. Independent trackers report slightly different numbers (80.6–83.7% across different scaffolding setups). Until Scale SEAL publishes an entry, treat V4 Pro's SWE-bench score as directionally accurate but not finalized.
+
+---
+
+### 4. What Competition Wins Mean as Enterprise Evidence
+
+DeepSeek V3.2-Speciale won gold at IMO, IOI, and ICPC 2026 — competitions where:
+- Problems are novel and designed specifically to prevent memorization
+- Solutions are verified against automated test suites and human judges
+- Time pressure and breadth requirements prevent narrow overfitting
+
+**Why this matters for enterprise evaluation:**
+
+Standard benchmarks can be gamed through training data contamination, prompt engineering for specific benchmarks, or cherry-picking evaluation conditions. A model that scores 97% on MATH-500 might still fail on a novel problem type it has never seen.
+
+Competition wins provide contamination-resistant evidence because the problems are literally designed to have never appeared before. A model winning IMO gold demonstrates genuine mathematical reasoning — not pattern matching on memorized proofs. For an enterprise evaluating whether to trust a model with novel analytical tasks, this is stronger evidence than any benchmark score.
+
+**Practical implication:** If DeepSeek V4 Pro can approach IMO-gold-level mathematical reasoning, tasks like financial modelling, scientific data analysis, and complex algorithm design are well within its reliable capability range. These are the tasks where V4 Pro's cost advantage makes the biggest business impact.
+
+---
+
+### 5. Where V4 Pro Wins and Where It Loses — Honest Assessment
+
+**V4 Pro clearly wins:**
+- Competitive and algorithmic programming (Codeforces 3,206 — best among all models)
+- Code generation on fresh problems (LiveCodeBench 93.5%)
+- Mathematical reasoning (MATH-500 96.1%)
+- Cost efficiency — 30x cheaper output than Claude Opus 4.7
+- Long-context tasks (1M token window with efficient CSA/HCA attention)
+- Open-weight availability — only option for air-gapped / data-sovereign deployment
+
+**Claude Opus 4.7 clearly wins:**
+- Real-world software engineering (SWE-bench Pro 64.3% vs V4 Pro's 55.4% — a genuine 9-point gap)
+- Multi-file repository-level code changes
+- Writing quality, citation rigor, structured long-form output
+- Production agentic loops with complex tool-use chains
+- Multimodal input (V4 Pro has no vision capability)
+
+**GPT-5.5 clearly wins:**
+- Autonomous CLI and shell-command workflows (Terminal-Bench 82.7%)
+- Computer use and GUI automation (OSWorld-Verified 78.7%)
+- Long-context retrieval (MRCRv2 87.5% at 128–256K)
+
+**The honest summary:** V4 Pro is not "better" or "worse" than Claude or GPT-5.5 — it is differently strong. For cost-sensitive coding, math, and algorithmic tasks with open-weight requirements, it is the best choice. For production software engineering agents and writing-heavy work, Claude Opus 4.7 still leads. For autonomous system tasks and multimodal work, GPT-5.5 leads.
+
+*Sources: Lushbinary frontier model comparison (April 2026), DataCamp V4 vs GPT-5.5 analysis, BenchLM.ai V4 Pro benchmark profile, Codersera V4 Pro review (updated June 2026), SWE-bench Pro leaderboard (morphllm.com, June 2026), FundaAI 38-task benchmark study.*
 
 ---
 
