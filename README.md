@@ -1,5 +1,5 @@
 # DeepSeek V4 Pro — AI Research Intern Assignment
-**Tekravio Academy · Assignment 04 · Submitted by: [Your Name]**
+**Tekravio Academy · Assignment 04 · Submitted by: [R.S.Asaduddin]**
 
 ---
 
