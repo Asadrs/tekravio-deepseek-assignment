@@ -324,7 +324,112 @@ Competition wins provide contamination-resistant evidence because the problems a
 
 ## Module 04 — Pricing & Deployment Strategy (18 marks)
 
-*Coming soon*
+---
+
+### 1. The Full Pricing Picture
+
+DeepSeek V4 Pro launched April 24, 2026 at $1.74/M input and $3.48/M output. On May 22, 2026, DeepSeek made a permanent 75% price cut:
+
+| Token type | Original price | Permanent price |
+|---|---|---|
+| Input (cache miss) | $1.74/M | **$0.435/M** |
+| Input (cache hit) | $0.0145/M | **$0.003625/M** |
+| Output | $3.48/M | **$0.87/M** |
+
+**Full model pricing comparison (June 2026):**
+
+| Model | Input ($/M) | Output ($/M) | Context | Open weights? |
+|---|---|---|---|---|
+| **DeepSeek V4 Flash** | $0.14 | $0.28 | 1M | ✅ MIT |
+| **DeepSeek V4 Pro** | $0.435 | $0.87 | 1M | ✅ MIT |
+| **Claude Sonnet 4.6** | $3.00 | $15.00 | 200K | ❌ |
+| **Claude Opus 4.7** | $5.00 | $25.00 | 200K | ❌ |
+| **GPT-5.5** | $5.00 | $30.00 | 1.05M | ❌ |
+| **Gemini 3.1 Pro** | $3.50 | $10.50 | 1M | ❌ |
+
+V4 Pro output is **34x cheaper than GPT-5.5** and **29x cheaper than Claude Opus 4.7**.
+
+---
+
+### 2. Intelligence-Per-Dollar Comparison
+
+Raw price means little without quality context. The real question is: how much intelligence per dollar?
+
+**Cost to run 1 million output tokens:**
+- DeepSeek V4 Pro: **$0.87**
+- Claude Opus 4.7: **$25.00** — 28.7x more expensive
+- GPT-5.5: **$30.00** — 34.5x more expensive
+
+Claude Opus 4.7 leads V4 Pro on SWE-bench Verified by ~7 points (87.6% vs 80.6%). To get the same number of successful outputs, you'd need to run V4 Pro ~28x more volume for the same cost. In most workloads, the cost gap dwarfs the quality gap.
+
+**The cache hit multiplier — the number most teams miss:**
+
+DeepSeek cache hit pricing is $0.003625/M tokens — roughly 120x cheaper than GPT-5.5's input price. For agent workflows where system prompts and tool definitions repeat across thousands of calls, cache hits dominate the bill.
+
+Concrete example:
+- 100,000 chat turns/day with a 6,000-token system prompt
+- **Without cache:** 100,000 × 6,200 tokens × $0.435/M = **$269.70/day**
+- **With cache hits:** ~**$10.88/day**
+- **Saving: 96% reduction** just from prompt caching
+
+Cache-aware system design is the single biggest cost lever for V4 Pro deployments.
+
+---
+
+### 3. DeepSeek's Pricing Strategy — What It Signals
+
+**Why DeepSeek can price this aggressively:**
+- MoE architecture — only 49B parameters activate per token, so compute cost is proportional to active parameters not total
+- CSA/HCA attention reduces KV cache memory by 90% vs V3.2 at 1M context — hardware costs per token are dramatically lower
+- Chinese infrastructure costs are substantially lower than US equivalents
+- DeepSeek is private and not under quarterly revenue pressure — they can price for market share
+
+**What making the 75% cut permanent means:**
+
+A promotional discount is a marketing event. A permanent cut is a market floor. DeepSeek published a reference price every other lab must respond to. A model at $0.87/M output delivering 80%+ SWE-bench Verified performance forces OpenAI, Anthropic, and Google to either match pricing or defend premium pricing through genuinely superior capability.
+
+**DeepSeek's likely long-term playbook:** Win developer mindshare and infrastructure adoption now. Once V4 Pro is embedded in production stacks, switching costs rise — enabling future platform monetisation. The same playbook AWS used with S3 in 2006.
+
+---
+
+### 4. Hybrid Deployment Architecture
+
+The right architecture is intelligent routing — not using one model for everything.
+
+**Routing rules by task type:**
+
+| Task type | Recommended model | Reason |
+|---|---|---|
+| High-volume chat, summarisation, extraction | V4 Flash ($0.14/$0.28) | 107x cheaper than GPT-5.5, sufficient quality |
+| Competitive programming, algorithm design | V4 Pro | Best LiveCodeBench (93.5%) and Codeforces (3,206) |
+| Mathematical reasoning, STEM analysis | V4 Pro | Best MATH-500 (96.1%), strong IMO performance |
+| Multi-file GitHub issue resolution | Claude Opus 4.7 | 87.6% SWE-bench — 7 points ahead of V4 Pro |
+| Autonomous CLI / shell-command agents | GPT-5.5 | 82.7% Terminal-Bench — clearly leads |
+| Multimodal input (images, documents) | Claude Opus 4.7 or GPT-5.5 | V4 Pro has no vision capability |
+| Air-gapped / data-sovereign deployment | V4 Pro self-hosted | Only frontier-adjacent MIT-licensed open option |
+| Long-context tasks (>200K tokens) | V4 Pro or GPT-5.5 | Only models with verified 1M token support |
+
+**Expected cost saving from routing vs using Claude for everything:**
+
+For a typical mixed workload (60% simple, 30% coding, 10% complex agentic):
+- All Claude Opus 4.7: ~$25/M output blended
+- Routed (V4 Flash + V4 Pro + Claude): ~$3–5/M blended
+- **Estimated saving: 80–88% reduction in inference cost**
+
+---
+
+### 5. When to Upgrade from API to Self-Hosted
+
+Use the API by default. Self-hosting makes sense only when:
+
+- **Data sovereignty is non-negotiable** — Healthcare (HIPAA), regulated finance, EU GDPR-strict, US government contractors. Self-hosting on your own infrastructure eliminates Chinese data residency risk. Cost comparison becomes irrelevant.
+- **You need custom fine-tuning** — The hosted API cannot serve fine-tuned checkpoints. Domain adaptation (legal, medical, proprietary code style) requires self-hosting.
+- **You have existing GPU capacity to amortise** — If H100s/H200s are already owned for training, running V4 Flash inference on spare capacity has near-zero marginal cost.
+- **Volume exceeds ~250M tokens/day at sustained utilisation** — Only at this scale does dedicated hardware at reserved pricing begin to beat API costs.
+
+For everyone else: use the API. At $0.87/M output with zero infrastructure overhead, the economics are hard to beat.
+
+*Sources: DeepSeek official API pricing page (api-docs.deepseek.com), Apidog V4 Pro permanent price cut analysis (May 2026), Codersera V4 Pro pricing guide (May 2026), Enterprise DNA pricing announcement, CloudZero DeepSeek pricing guide, OpenRouter V4 Pro listing.*
 
 ---
 
