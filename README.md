@@ -8,6 +8,7 @@
 - Module 4: Cost & Deployment
 - Module 5: Enterprise Adoption
 - References
+- Bonus Tasks
 
 ---
 
