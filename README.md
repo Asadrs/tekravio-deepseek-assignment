@@ -435,4 +435,259 @@ For everyone else: use the API. At $0.87/M output with zero infrastructure overh
 
 ## Module 05 — Enterprise Risk Framework (20 marks)
 
-*Coming soon*
+---
+
+### 1. The Three Layers of Enterprise Risk
+
+When enterprises evaluate an AI model, they do not ask only:
+
+> "How intelligent is this model?"
+
+They ask:
+
+> "What happens if this model fails?"
+
+Enterprise AI risk can be divided into three layers:
+
+| Risk Layer | Question |
+|---|---|
+| Technical Risk | Can the model produce incorrect outputs? |
+| Operational Risk | Can the system fail in production? |
+| Regulatory Risk | Can its usage violate laws or compliance requirements? |
+
+DeepSeek V4 Pro performs extremely well technically, but enterprise adoption depends on controlling all three risk layers.
+
+---
+
+### 2. Hallucination Risk
+
+Like every large language model, V4 Pro can generate information that appears confident but is factually incorrect.
+
+Examples include:
+
+- Non-existent research citations
+- Incorrect legal advice
+- Fabricated financial figures
+- Invented API documentation
+- Wrong medical recommendations
+
+The risk becomes larger when the model is used without external verification.
+
+For example:
+
+- A coding assistant generating insecure code
+- A legal assistant inventing regulations
+- A financial assistant producing incorrect calculations
+
+The larger the business impact, the more dangerous hallucinations become.
+
+**Mitigation techniques:**
+
+- Retrieval-Augmented Generation (RAG)
+- Human approval workflows
+- Citation requirements
+- Confidence scoring
+- Output validation systems
+
+Enterprise deployments should treat the model as an intelligent assistant rather than an autonomous decision maker.
+
+---
+
+### 3. Data Privacy and Sovereignty
+
+One of the largest concerns surrounding modern AI systems is data movement.
+
+When an employee sends:
+
+- Customer records
+- Financial documents
+- Internal source code
+- Legal contracts
+- Confidential reports
+
+to a public API, the organization loses direct control over where that data travels.
+
+Several European regulators have investigated AI providers regarding international data transfers.
+
+For highly regulated industries:
+
+- Healthcare
+- Banking
+- Insurance
+- Government
+- Defense
+
+data residency becomes a critical requirement.
+
+DeepSeek V4 Pro offers a unique advantage:
+
+> The MIT license allows complete self-hosting.
+
+When deployed on internal infrastructure:
+
+- No data leaves the organization
+- Data residency requirements can be satisfied
+- Internal security controls remain in place
+
+This makes V4 Pro attractive for organizations requiring sovereign AI deployments.
+
+---
+
+### 4. Security Risks
+
+LLMs introduce entirely new attack surfaces.
+
+Examples include:
+
+#### Prompt Injection
+
+A malicious document could instruct the model to ignore previous instructions.
+
+#### Data Leakage
+
+The model may accidentally expose sensitive information from previous context windows.
+
+#### Tool Misuse
+
+An agent connected to databases, APIs, or internal systems may perform unintended actions.
+
+#### Jailbreak Attacks
+
+Users may attempt to bypass safety rules and restrictions.
+
+For enterprise deployments, AI systems must follow the principle of:
+
+> Least privilege.
+
+The model should receive only the minimum permissions required to perform its task.
+
+Recommended protections include:
+
+- Role-based access control
+- Prompt filtering
+- API restrictions
+- Logging and monitoring
+- Human approval for critical actions
+
+---
+
+### 5. Compliance Challenges
+
+Regulations surrounding AI continue to evolve.
+
+Examples include:
+
+- EU AI Act
+- GDPR
+- India's DPDP Act
+- HIPAA
+- SOC 2
+- ISO 27001
+
+Organizations must demonstrate:
+
+- Auditability
+- Accountability
+- Data protection
+- Human oversight
+
+Closed models often provide limited transparency.
+
+Open-weight models such as V4 Pro offer greater control because organizations can:
+
+- Inspect deployment infrastructure
+- Control logs
+- Implement internal governance
+- Restrict data movement
+
+However, responsibility also shifts to the organization itself.
+
+Owning the infrastructure means owning the compliance burden.
+
+---
+
+### 6. Enterprise Deployment Recommendation
+
+Different organizations require different deployment strategies.
+
+| Organization Type | Recommended Approach |
+|---|---|
+| Startup | API deployment |
+| SaaS company | Hybrid deployment |
+| Large enterprise | Private cloud |
+| Healthcare | Self-hosted |
+| Banking | Self-hosted |
+| Government | Air-gapped deployment |
+
+For most companies:
+
+1. Begin with the hosted API.
+2. Evaluate quality and business impact.
+3. Measure token consumption.
+4. Move to private deployment if compliance requires it.
+
+This staged approach minimizes both cost and operational risk.
+
+---
+
+### 7. Final Enterprise Assessment
+
+DeepSeek V4 Pro demonstrates that frontier-level AI capability no longer requires proprietary closed models.
+
+Its advantages include:
+
+- Open weights
+- MIT license
+- Extremely low inference costs
+- Long context windows
+- Strong coding and reasoning performance
+
+However, enterprise adoption requires:
+
+- Proper governance
+- Monitoring
+- Security controls
+- Human oversight
+
+The future of enterprise AI is unlikely to be:
+
+> One model for every task.
+
+Instead, organizations will deploy multiple models depending on:
+
+- Cost
+- Performance
+- Compliance
+- Risk tolerance
+
+DeepSeek V4 Pro represents an important milestone because it brings frontier-level capability to organizations that previously could not afford or control advanced AI systems.
+
+For many enterprises, the question is no longer:
+
+> "Can open models compete?"
+
+The question has become:
+
+> "When does the cost advantage of open models outweigh the remaining capability gap?"
+
+DeepSeek V4 Pro suggests that point may already have arrived.
+
+---
+
+## References
+
+1. DeepSeek V4 Technical Documentation
+2. DeepSeek API Documentation
+3. DeepSeek V3 Technical Report
+4. vLLM Documentation and Deployment Guides
+5. SWE-bench Leaderboards
+6. LiveCodeBench Evaluation Results
+7. GPQA and MMLU-Pro Benchmark Papers
+8. EU AI Act Documentation
+9. GDPR Articles 44–49
+10. India's Digital Personal Data Protection (DPDP) Act
+11. CloudZero AI Cost Analysis Reports
+12. Together AI Deployment Documentation
+13. OpenRouter Model Pricing Data
+14. DataCamp Frontier Model Comparisons
+15. BenchLM Frontier Model Evaluations
